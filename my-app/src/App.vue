@@ -110,7 +110,8 @@ export default {
     filterCategory: function(event) { // カテゴリーがクリックされたとき用のメソッド
       this.posts.splice(0, 9999);
       this.loading = true;
-      const categoryId = event.currentTarget.getAttribute('data-category-id'); // カテゴリーの取得
+      this.disabled = false;
+      const categoryId = event.currentTarget.getAttribute('data-category-id'); // クリックしたカテゴリーの取得
       this.category = Number(categoryId); // `string` から `number` に変換
       if ( this.category === 2 ) {
         this.categoryArray[0].page = 0; //[WIP] 一度 `0` に戻して `1` に増加させないと `watch` が効かない

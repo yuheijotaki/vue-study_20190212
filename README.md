@@ -14,8 +14,8 @@
 
 [vue\.js 2\.x その 0009 watch で配列\(array\)や連想配列\(object\)を監視する \- Motomichi Works Blog](http://motomichi-works.hatenablog.com/entry/2017/04/08/164548)
 
-> 連想配列の Object を丸ごと監視したい場合は、処理は handler: function(){},の方に記述して、deep: true,が必要です。
-> 連想配列の Object を個々に監視したい場合は、watch のキーをクォーテーションで囲って'individuallyObj.aaa'のようにします。
+> 連想配列の Object を丸ごと監視したい場合は、処理は `handler: function(){},` の方に記述して、`deep: true,` が必要です。
+> 連想配列の `Object` を個々に監視したい場合は、`watch` のキーをクォーテーションで囲って `'individuallyObj.aaa'` のようにします。
 
 ここでは `categoryArray` という配列を監視するために使う。
 
@@ -29,4 +29,5 @@
 
 ## まとめ
 
-- Vue.js というより JavaScript の 配列やオブジェクトでつまづく。。
+- Vue.js というより JavaScript の オブジェクトや配列の扱いでつまづく。。
+- `watch` と `computed` の違いがやっぱりいまいち分からない。今回の `computed` でもできそう。
