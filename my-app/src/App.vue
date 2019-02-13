@@ -1,9 +1,10 @@
 <template>
   <div id="app">
     <header>
-      <!-- <h1>blog.yuheijotaki.com</h1> -->
+      <h1>blog.yuheijotaki.com</h1>
       <nav>
         <ul class="category_list">
+          <!-- [WIP] ここもJSONからもってくる -->
           <li><a href="#" data-category-id="2" @click="filterCategory">Develop</a></li>
           <li><a href="#" data-category-id="3" @click="filterCategory">Design</a></li>
           <li><a href="#" data-category-id="4" @click="filterCategory">Others</a></li>
@@ -18,13 +19,9 @@
       </ul>
       <button
         class="button"
-        :class="[{
-          'is-loading': loading,
-          'is-disabled': disabled
-        }]"
+        :class="[{ 'is-loading': loading, 'is-disabled': disabled }]"
         :disabled="disabled"
-        @click="load"
-      >次の記事を読み込む</button>
+        @click="load">次の記事を読み込む</button>
     </main>
   </div>
 </template>
@@ -40,86 +37,91 @@ export default {
   data() {
     return {
       posts: [],
-      category: '',
-      page: 0,
       loading: false,
-      disabled: false
+      disabled: false,
+      category: '',
+      categoryArray: [ //[WIP] ここは連想配列でなくてオブジェクトでできないか。 `data` の `category` もなくてもできそう。
+        {
+          id: 2,
+          slug: 'develop',
+          page: 0
+        },
+        {
+          id: 3,
+          slug: 'design',
+          page: 0
+        },
+        {
+          id: 4,
+          slug: 'others',
+          page: 0
+        }
+      ]
     }
   },
   mounted() {
-    this.category = 2;
-    this.page = 1;
+    this.category = 2; // 初期はDevelopカテゴリー
+    this.categoryArray[0].page = 1; // 初期はDevelopカテゴリーの1ページ目
   },
   watch: {
-    page() {
-      // if (this.page === null) {
-      //   this.page = 1;
-      // }
-      this.page = 1;
-      const url = `https://blog.yuheijotaki.com/wp-json/wp/v2/posts?per_page=10&page=${this.page}&categories=${this.category}`;
-      (async () => {
-        try {
-          const res = await axios.get(url);
-          this.posts = this.posts.concat(res.data);
-          this.loading = false;
-        } catch (error) {
-          // alert('取得できませんでした。')
-          console.log(error);
-          this.empty();
+    categoryArray: {
+      handler: function(val){
+        if ( this.category === 2 ) {
+          var categoryPage = this.categoryArray[0].page;
+        } else if ( this.category === 3 ) {
+          var categoryPage = this.categoryArray[1].page;
+        } else if ( this.category === 4 ) {
+          var categoryPage = this.categoryArray[2].page;
         }
-      })();
+        const url = `https://blog.yuheijotaki.com/wp-json/wp/v2/posts?categories=${this.category}&per_page=10&page=${categoryPage}`;
+        // console.log(url);
+        // 非同期でJSON URLから投稿を取得
+        (async () => {
+          try {
+            const res = await axios.get(url);
+            this.posts = this.posts.concat(res.data);
+            this.loading = false;
+          } catch (error) {
+            // alert('取得できませんでした。')
+            console.log(error);
+            this.empty();
+          }
+        })();
+      },
+      deep: true,
     }
   },
   methods: {
-    load() {
-      // `次の記事を読み込む` ボタンが押されたとき用のメソッド
-      this.category = 2;
+    load() { // `次の記事を読み込む` ボタンが押されたとき用のメソッド
+      // this.category = this.category; // カテゴリーは `this.category` のままになる
       this.loading = true;
-      this.page++;
+      if ( this.category === 2 ) {
+        this.categoryArray[0].page++;
+      } else if ( this.category === 3 ) {
+        this.categoryArray[1].page++;
+      } else if ( this.category === 4 ) {
+        this.categoryArray[2].page++;
+      }
     },
-    empty() {
-      // 記事がない or 通信エラーのとき用のメソッド
-      this.category = null;
+    empty() { // 記事がない or 通信エラーのとき用のメソッド
       this.loading = false;
       this.disabled = true;
     },
-    filterCategory: function(event) {
-      // AjaxのURL定義
-      // カテゴリーがクリックされたとき（`event` があるとき）
-      // this.loading = true;
-      this.loading = true;
+    filterCategory: function(event) { // カテゴリーがクリックされたとき用のメソッド
       this.posts.splice(0, 9999);
-      const cateogoryId = event.currentTarget.getAttribute('data-category-id'); // カテゴリーの取得
-      this.category = cateogoryId;
-
-      // this.page++; // これだと少しうまくいく
-      // this.page = 2; // これだといかない
-
-
-
-      // if ( event.currentTarget.getAttribute('data-category-id') ) {
-        // `次の記事を読み込む` ボタンが押されたとき（`event` がないとき）
-        // this.category = 2;
-        // this.page ++;
-      // } else {
-      // }
-
-      // this.loading = true;
-      // this.page++;
-      // this.posts.splice(0, 20); // 投稿をすべて削除
-      // const cateogoryId = event.currentTarget.getAttribute('data-category-id'); // カテゴリーの取得
-      // const updatedUrl = `${url}&page=${this.page}&categories=${cateogoryId}`; // JSON URLのアップデート
-      // console.log(updatedUrl);
-      // (async () => {
-      //   try {
-      //     const res = await axios.get(updatedUrl);
-      //     this.posts = this.posts.concat(res.data);
-      //     event.target.className += ' is-current';
-      //     this.loading = false;
-      //   } catch (error) {
-      //     alert('取得できませんでした。')
-      //   }
-      // })();
+      this.loading = true;
+      const categoryId = event.currentTarget.getAttribute('data-category-id'); // カテゴリーの取得
+      this.category = Number(categoryId); // `string` から `number` に変換
+      if ( this.category === 2 ) {
+        this.categoryArray[0].page = 0; //[WIP] 一度 `0` に戻して `1` に増加させないと `watch` が効かない
+        this.categoryArray[0].page = 1;
+      } else if ( this.category === 3 ) {
+        this.categoryArray[1].page = 0;
+        this.categoryArray[1].page = 1;
+      } else if ( this.category === 4 ) {
+        this.categoryArray[2].page = 0;
+        this.categoryArray[2].page = 1;
+      }
     }
   },
 };
