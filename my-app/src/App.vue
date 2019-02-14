@@ -4,10 +4,9 @@
       <h1>blog.yuheijotaki.com</h1>
       <nav>
         <ul class="category_list">
-          <!-- [WIP] ここもJSONからもってくる -->
-          <li><a href="#" data-category-id="2" @click="filterCategory">Develop</a></li>
-          <li><a href="#" data-category-id="3" @click="filterCategory">Design</a></li>
-          <li><a href="#" data-category-id="4" @click="filterCategory">Others</a></li>
+          <li v-for="cat in categories" :key="cat.name.rendered">
+            <a href="#" v-bind:data-category-id="cat.id" @click="filterCategory">{{cat.name}}</a>
+          </li>
         </ul>
       </nav>
     </header>
@@ -39,7 +38,8 @@ export default {
       posts: [],
       loading: false,
       disabled: false,
-      category: '',
+      categories: '', //[WIP] ここひとつにまとめれそう
+      category: '', //[WIP] ここひとつにまとめれそう
       categoryArray: [ //[WIP] ここは連想配列でなくてオブジェクトでできないか。 `data` の `category` もなくてもできそう。
         {
           id: 2,
@@ -60,6 +60,7 @@ export default {
     }
   },
   mounted() {
+    this.getCategories();
     this.category = 2; // 初期はDevelopカテゴリー
     this.categoryArray[0].page = 1; // 初期はDevelopカテゴリーの1ページ目
   },
@@ -92,6 +93,25 @@ export default {
     }
   },
   methods: {
+    getCategories: function () {
+      const categoryUrl = `https://blog.yuheijotaki.com/wp-json/wp/v2/categories`;
+      // 非同期でJSON URLから投稿を取得
+      (async () => {
+        try {
+          const res = await axios.get(categoryUrl);
+          const categories = res.data;
+          categories.shift(); // [WIP] 先頭の配列（`未分類`）を削除 ただし先頭が`未分類`と限らないので要修正
+          // オブジェクト `categories.page` の追加
+          for ( var i = 0; i < categories.length; ++i ) {
+            categories[i].page = 0;
+          }
+          // console.log(categories);
+          this.categories = categories;
+        } catch (error) {
+          console.log(error);
+        }
+      })();
+    },
     load() { // `次の記事を読み込む` ボタンが押されたとき用のメソッド
       // this.category = this.category; // カテゴリーは `this.category` のままになる
       this.loading = true;
@@ -108,9 +128,10 @@ export default {
       this.disabled = true;
     },
     filterCategory: function(event) { // カテゴリーがクリックされたとき用のメソッド
-      this.posts.splice(0, 9999);
+      // カテゴリーが選択された場合は一度投稿を削除してから該当の一覧を表示させる
       this.loading = true;
       this.disabled = false;
+      this.posts.splice(0, 9999); //[WIP] 0記事目から9999記事目まで削除 決め打ちなので要修正
       const categoryId = event.currentTarget.getAttribute('data-category-id'); // クリックしたカテゴリーの取得
       this.category = Number(categoryId); // `string` から `number` に変換
       if ( this.category === 2 ) {
